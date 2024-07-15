@@ -14,13 +14,22 @@
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="w-64 bg-blue-600 text-white p-6">
+        <!-- Sidebar (for larger screens) -->
+        <div id="sidebar" class="hidden md:block w-64 bg-blue-600 text-white p-6">
             <h2 class="text-2xl font-bold mb-8">IDEALER TRANSPORT</h2>
             <nav>
                 <a href="#" class="block py-2 px-4 rounded hover:bg-blue-700 mb-2" id="unreadTab">Non lus</a>
-                <a href="#" class="block py-2 px-4 rounded hover:bg-blue-700" id="readTab">Lus</a>
+                <a href="#" class="block py-2 px-4 rounded hover:bg-blue-700 mb-2" id="readTab">Lus</a>
+                <a href="#" class="block py-2 px-4 rounded hover:bg-blue-700" id="archiveTab">Archives</a>
             </nav>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="md:hidden flex items-center justify-between bg-blue-600 text-white p-4">
+            <h2 class="text-xl font-bold"></h2>
+            <button id="toggleMenu" class="focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
         </div>
 
         <!-- Main Content -->
@@ -28,11 +37,24 @@
             <h1 class="text-3xl font-bold mb-6">Suivi des livraisons</h1>
             <div id="deliveryList" class="space-y-4"></div>
         </div>
+
+        <!-- Mobile Sidebar -->
+        <div id="mobileSidebar" class="md:hidden fixed inset-0 bg-gray-600 bg-opacity-50 hidden justify-center items-center">
+            <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+                <button class="absolute top-4 right-4 text-gray-600 hover:text-gray-800" onclick="closeMobileSidebar()">×</button>
+                <nav>
+                    <a href="#" class="block py-2 px-4 rounded hover:bg-blue-700 mb-2" id="unreadTabMobile">Non lus</a>
+                    <a href="#" class="block py-2 px-4 rounded hover:bg-blue-700 mb-2" id="readTabMobile">Lus</a>
+                    <a href="#" class="block py-2 px-4 rounded hover:bg-blue-700" id="archiveTabMobile">Archives</a>
+                </nav>
+            </div>
+        </div>
     </div>
 
     <!-- Delivery Modal -->
     <div id="deliveryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden justify-center items-center">
         <div class="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
+            <button class="absolute top-4 right-4 text-gray-600 hover:text-gray-800" onclick="closeModal('deliveryModal')">×</button>
             <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>
             <p id="modalBody" class="mb-6"></p>
             <div class="flex justify-between">
@@ -40,13 +62,13 @@
                 <button id="archiveButton" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Archiver</button>
                 <button id="deleteButton" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Supprimer</button>
             </div>
-            <button class="absolute top-4 right-4 text-gray-600 hover:text-gray-800" onclick="closeModal('deliveryModal')">&times;</button>
         </div>
     </div>
 
     <!-- Reply Modal -->
     <div id="replyModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden justify-center items-center">
         <div class="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
+            <button class="absolute top-4 right-4 text-gray-600 hover:text-gray-800" onclick="closeModal('replyModal')">×</button>
             <h2 class="text-2xl font-bold mb-4">Répondre</h2>
             <form id="replyForm" class="space-y-4">
                 <div>
@@ -63,13 +85,13 @@
                 </div>
                 <button type="button" onclick="openGmail()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Envoyer via Gmail</button>
             </form>
-            <button class="absolute top-4 right-4 text-gray-600 hover:text-gray-800" onclick="closeModal('replyModal')">&times;</button>
         </div>
     </div>
 
     <!-- Confirmation Modal -->
     <div id="confirmModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden justify-center items-center">
         <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+            <button class="absolute top-4 right-4 text-gray-600 hover:text-gray-800" onclick="closeModal('confirmModal')">×</button>
             <h2 class="text-2xl font-bold mb-4">Confirmation</h2>
             <p id="confirmMessage" class="mb-6"></p>
             <div class="flex justify-end space-x-4">
@@ -102,6 +124,10 @@
         const deliveryList = document.getElementById('deliveryList');
         const unreadTab = document.getElementById('unreadTab');
         const readTab = document.getElementById('readTab');
+        const archiveTab = document.getElementById('archiveTab');
+        const unreadTabMobile = document.getElementById('unreadTabMobile');
+        const readTabMobile = document.getElementById('readTabMobile');
+        const archiveTabMobile = document.getElementById('archiveTabMobile');
         let currentTab = 'unread';
 
         unreadTab.addEventListener('click', () => {
@@ -114,13 +140,42 @@
             fetchDeliveries();
         });
 
+        archiveTab.addEventListener('click', () => {
+            currentTab = 'archive';
+            fetchDeliveries();
+        });
+
+        unreadTabMobile.addEventListener('click', () => {
+            currentTab = 'unread';
+            fetchDeliveries();
+            closeMobileSidebar();
+        });
+
+        readTabMobile.addEventListener('click', () => {
+            currentTab = 'read';
+            fetchDeliveries();
+            closeMobileSidebar();
+        });
+
+        archiveTabMobile.addEventListener('click', () => {
+            currentTab = 'archive';
+            fetchDeliveries();
+            closeMobileSidebar();
+        });
+
         function fetchDeliveries() {
             const deliveriesRef = database.ref('suivi-livraisons');
             deliveriesRef.on('value', (snapshot) => {
                 deliveryList.innerHTML = ''; // Clear existing list
                 snapshot.forEach((childSnapshot) => {
                     const delivery = childSnapshot.val();
-                    if ((currentTab === 'unread' && !delivery.read) || (currentTab === 'read' && delivery.read)) {
+                    if (currentTab === 'unread' && !delivery.read && !delivery.archived) {
+                        const deliveryItem = createDeliveryItem(delivery, childSnapshot.key);
+                        deliveryList.appendChild(deliveryItem);
+                    } else if (currentTab === 'read' && delivery.read && !delivery.archived) {
+                        const deliveryItem = createDeliveryItem(delivery, childSnapshot.key);
+                        deliveryList.appendChild(deliveryItem);
+                    } else if (currentTab === 'archive' && delivery.archived) {
                         const deliveryItem = createDeliveryItem(delivery, childSnapshot.key);
                         deliveryList.appendChild(deliveryItem);
                     }
@@ -229,6 +284,18 @@ Numéro de suivi: ${delivery.trackingNumber}
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
+
+        function openMobileSidebar() {
+            document.getElementById('mobileSidebar').style.display = 'flex';
+        }
+
+        function closeMobileSidebar() {
+            document.getElementById('mobileSidebar').style.display = 'none';
+        }
+
+        document.getElementById('toggleMenu').addEventListener('click', () => {
+            openMobileSidebar();
+        });
 
         // Initial fetch of deliveries
         fetchDeliveries();
